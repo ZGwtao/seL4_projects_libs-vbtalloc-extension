@@ -214,6 +214,10 @@ struct vm {
     char *vm_name;
     unsigned int vm_id;
     bool vm_initialised;
+
+    /* page fault performance measurer */
+    size_t num_pagefault_cycles;
+    size_t num_pagefault;
 };
 
 /***

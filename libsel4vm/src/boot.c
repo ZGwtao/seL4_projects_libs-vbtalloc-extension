@@ -50,6 +50,9 @@ int vm_init(vm_t *vm, vka_t *vka, simple_t *host_simple, vspace_t host_vspace,
         ZF_LOGE("Failed to initialise VM architecture support");
         return err;
     }
+    /* Initialize pagefault performance measuring utils */
+    vm->num_pagefault_cycles = 0x0;
+    vm->num_pagefault = 0x0;
 
     /* Flag that the vm has been initialised */
     vm->vm_initialised = true;

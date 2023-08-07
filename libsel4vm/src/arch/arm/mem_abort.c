@@ -16,6 +16,7 @@
 #include "mem_abort.h"
 #include "fault.h"
 #include "guest_memory.h"
+#include <sel4/benchmark_utilisation_types.h>
 
 static int unhandled_memory_fault(vm_t *vm, vm_vcpu_t *vcpu, fault_t *fault)
 {
@@ -102,7 +103,19 @@ int vm_guest_mem_abort_handler(vm_vcpu_t *vcpu)
         ZF_LOGE("Failed to initialise new fault");
         return -1;
     }
+#ifdef CONFIG_ENABLE_BENCHMARKS
+    uint64_t *ipcbuffer = (uint64_t *)&(seL4_GetIPCBuffer()->msg[0]);
+    seL4_BenchmarkResetThreadUtilisation(simple_get_tcb(vcpu->vm->simple));
+    seL4_BenchmarkResetLog();
+#endif
     err = handle_page_fault(vcpu->vm, vcpu, fault);
+#ifdef CONFIG_ENABLE_BENCHMARKS
+    seL4_BenchmarkFinalizeLog();
+    seL4_BenchmarkGetThreadUtilisation(simple_get_tcb(vcpu->vm->simple));
+#endif
+    vcpu->vm->num_pagefault_cycles += ipcbuffer[BENCHMARK_TCB_UTILISATION];
+    vcpu->vm->num_pagefault += 1;
+    /* printf("%ld ", vcpu->vm->num_pagefault_cycles / vcpu->vm->num_pagefault); */
     if (err) {
         return VM_EXIT_HANDLE_ERROR;
     }
