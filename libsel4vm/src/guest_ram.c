@@ -278,6 +278,12 @@ static vm_frame_t ram_ut_alloc_iterator(uintptr_t addr, void *cookie)
     }
     int page_size = seL4_PageBits;
     uintptr_t frame_start = ROUND_DOWN(addr, BIT(page_size));
+#ifdef CONFIG_LIB_VKA_ALLOW_POOL_OPERATIONS
+    error = vka_alloc_object_at(vm->vka, kobject_get_type(KOBJECT_FRAME, page_size), page_size, frame_start, &frame_result);
+    if (error == seL4_NoError) {
+        return frame_result;
+    }
+#endif
     cspacepath_t path;
     error = vka_cspace_alloc_path(vm->vka, &path);
     if (error) {
